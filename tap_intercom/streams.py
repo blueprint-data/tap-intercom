@@ -901,6 +901,63 @@ class Teams(FullTableStream):
             yield from response.get(self.data_key,  [])
 
 
+class Tickets(IncrementalStream):
+    """
+    Retrieve tickets
+
+    Docs: https://developers.intercom.com/intercom-api-reference/reference/search-tickets
+    """
+    tap_stream_id = 'tickets'
+    key_properties = ['id']
+    path = 'tickets/search'
+    replication_key = 'updated_at'
+    valid_replication_keys = ['updated_at']
+    data_key = 'tickets'
+    per_page = MAX_PAGE_SIZE
+    to_write_intermediate_bookmark = True
+
+    def get_records(self, bookmark_datetime=None, is_parent=False, stream_metadata=None) -> Iterator[list]:
+        paging = True
+        starting_after = None
+        search_query = {
+            'pagination': {
+                'per_page': self.per_page
+            },
+            'query': {
+                'operator': 'OR',
+                'value': [{
+                    'field': self.replication_key,
+                    'operator': '>',
+                    'value': self.dt_to_epoch_seconds(bookmark_datetime)
+                    },
+                    {
+                    'field': self.replication_key,
+                    'operator': '=',
+                    'value': self.dt_to_epoch_seconds(bookmark_datetime)
+                    }]
+                },
+            'sort': {
+                'field': self.replication_key,
+                'order': 'ascending'
+                }
+        }
+        LOGGER.info("Syncing: {}".format(self.tap_stream_id))
+
+        while paging:
+            response = self.client.post(self.path, json=search_query)
+
+            if 'pages' in response and response.get('pages', {}).get('next'):
+                starting_after = response.get('pages').get('next').get('starting_after')
+                search_query['pagination'].update({'starting_after': starting_after})
+            else:
+                paging = False
+
+            records = transform_json(response, self.tap_stream_id, self.data_key)
+            LOGGER.info("Synced: {} for page: {}, records: {}".format(self.tap_stream_id, response.get('pages', {}).get('page'), len(records)))
+
+            yield from records
+
+
 STREAMS = {
     "admin_list": AdminList,
     "admins": Admins,
@@ -913,5 +970,6 @@ STREAMS = {
     "contacts": Contacts,
     "segments": Segments,
     "tags": Tags,
-    "teams": Teams
+    "teams": Teams,
+    "tickets": Tickets
 }
