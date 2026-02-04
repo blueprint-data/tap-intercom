@@ -198,7 +198,7 @@ class IncrementalStream(BaseStream):
         self.set_last_processed(state)
         self.set_last_sync_started_at(state)
 
-        is_parent_selected = True
+        is_parent_selected = self.tap_stream_id in self.selected_streams
         is_child_selected = False
 
         # If the current stream has a child stream, then get the child stream's bookmark
@@ -253,14 +253,19 @@ class IncrementalStream(BaseStream):
                         record[self.replication_key])
                 )
 
-                # Write the record if the parent is selected
-                if is_parent_selected and record_datetime >= parent_bookmark_utc:
+                # Write the record if:
+                # 1. Parent is selected AND record >= parent_bookmark, OR
+                # 2. Child is selected AND record >= child_bookmark (need parent record for context)
+                should_write_parent = (is_parent_selected and record_datetime >= parent_bookmark_utc) or \
+                                     (is_child_selected and has_child and record_datetime >= child_bookmark_utc)
+
+                if should_write_parent:
                     record_counter += 1
                     transformed_record = transform(record,
                                                    stream_schema,
                                                    integer_datetime_fmt=UNIX_MILLISECONDS_INTEGER_DATETIME_PARSING,
                                                    metadata=stream_metadata)
-                    # Write record if a parent is selected
+                    # Write record if a parent is selected or if child is selected and needs parent context
                     singer.write_record(self.tap_stream_id, transformed_record, time_extracted=singer.utils.now())
                     counter.increment()
                     max_datetime = max(record_datetime, max_datetime)
