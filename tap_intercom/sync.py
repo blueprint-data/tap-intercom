@@ -71,10 +71,13 @@ def sync(config, state, catalog):
     # Translate state to the new format with replication key in the state
     state = translate_state(state)
 
-    selected_stream_names = []
+    # Determine which streams are selected in the catalog.
+    # If none are explicitly selected, default to all streams.
     selected_streams = list(catalog.get_selected_streams(state))
-    for stream in selected_streams:
-        selected_stream_names.append(stream.tap_stream_id)
+    if not selected_streams:
+        selected_streams = catalog.streams
+
+    selected_stream_names = [stream.tap_stream_id for stream in selected_streams]
 
     with Transformer() as transformer:
         for stream in get_streams_to_sync(catalog, selected_streams, selected_stream_names):
