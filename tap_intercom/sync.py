@@ -68,6 +68,19 @@ def sync(config, state, catalog):
     access_token = config.get('access_token')
     client = IntercomClient(access_token, config.get('request_timeout'), config.get('user_agent')) # pass request_timeout parameter from config
 
+    # Some orchestrators (or custom state stores) may wrap the actual Singer
+    # state inside a top-level "singer_state" key, e.g.:
+    # {
+    #     "singer_state": {
+    #         "currently_syncing": null,
+    #         "bookmarks": { ... }
+    #     }
+    # }
+    # The tap, however, expects to receive the inner object as the state. To
+    # support both representations we unwrap the state if needed.
+    if isinstance(state, dict) and "singer_state" in state and isinstance(state["singer_state"], dict):
+        state = state["singer_state"]
+
     # Translate state to the new format with replication key in the state
     state = translate_state(state)
 
