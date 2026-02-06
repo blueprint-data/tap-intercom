@@ -81,8 +81,20 @@ def sync(config, state, catalog):
     if isinstance(state, dict) and "singer_state" in state and isinstance(state["singer_state"], dict):
         state = state["singer_state"]
 
+    LOGGER.info(
+        "Raw incoming state. type=%s keys=%s",
+        type(state),
+        list(state.keys()) if isinstance(state, dict) else None,
+    )
+
     # Translate state to the new format with replication key in the state
     state = translate_state(state)
+
+    if isinstance(state, dict):
+        LOGGER.info(
+            "Translated state bookmarks keys: %s",
+            list(state.get("bookmarks", {}).keys()),
+        )
 
     # Determine which streams are selected in the catalog.
     # If none are explicitly selected, default to all streams.

@@ -192,7 +192,24 @@ class IncrementalStream(BaseStream):
         child_stream = STREAMS.get(self.child)
 
         # Get current stream bookmark
-        parent_bookmark = singer.get_bookmark(state, self.tap_stream_id, self.replication_key, config['start_date'])
+        raw_state_bookmark = None
+        if isinstance(state, dict):
+            raw_state_bookmark = state.get("bookmarks", {}).get(self.tap_stream_id)
+        LOGGER.info(
+            "Stream: %s, raw state bookmark entry before get_bookmark: %s",
+            self.tap_stream_id,
+            raw_state_bookmark,
+        )
+
+        parent_bookmark = singer.get_bookmark(
+            state, self.tap_stream_id, self.replication_key, config['start_date']
+        )
+        LOGGER.info(
+            "Stream: %s, config start_date=%s, parent_bookmark used=%s",
+            self.tap_stream_id,
+            config.get("start_date"),
+            parent_bookmark,
+        )
         parent_bookmark_utc = singer.utils.strptime_to_utc(parent_bookmark)
         sync_start_date = parent_bookmark_utc
         self.set_last_processed(state)
