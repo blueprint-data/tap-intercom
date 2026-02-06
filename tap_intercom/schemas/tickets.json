@@ -16,6 +16,12 @@
         "string"
       ]
     },
+    "ticket_id": {
+      "type": [
+        "null",
+        "string"
+      ]
+    },
     "created_at": {
       "type": [
         "null",
@@ -109,6 +115,12 @@
         "string"
       ]
     },
+    "is_shared": {
+      "type": [
+        "null",
+        "boolean"
+      ]
+    },
     "ticket_attributes": {
       "type": [
         "null",
@@ -162,6 +174,142 @@
               }
             }
           }
+        }
+      }
+    },
+    "ticket_state": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "category": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "internal_label": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "external_label": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "archived": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        }
+      }
+    },
+    "ticket_type": {
+      "type": [
+        "null",
+        "object"
+      ],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "category": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "icon": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "workspace_id": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "ticket_type_attributes": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": true
+        },
+        "ticket_states": {
+          "type": [
+            "null",
+            "object"
+          ],
+          "additionalProperties": true
+        },
+        "archived": {
+          "type": [
+            "null",
+            "boolean"
+          ]
+        },
+        "created_at": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time"
+        },
+        "updated_at": {
+          "type": [
+            "null",
+            "string"
+          ],
+          "format": "date-time"
+        },
+        "is_internal": {
+          "type": [
+            "null",
+            "boolean"
+          ]
         }
       }
     },
@@ -282,6 +430,39 @@
                 ],
                 "format": "date-time"
               },
+              "previous_ticket_state": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "ticket_state": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "assigned_to": {
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": false,
+                "properties": {
+                  "type": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  },
+                  "id": {
+                    "type": [
+                      "null",
+                      "string"
+                    ]
+                  }
+                }
+              },
               "author": {
                 "type": [
                   "null",
@@ -383,6 +564,19 @@
                   "null",
                   "boolean"
                 ]
+              },
+              "app_package_code": {
+                "type": [
+                  "null",
+                  "string"
+                ]
+              },
+              "updated_attribute_data": {
+                "type": [
+                  "null",
+                  "object"
+                ],
+                "additionalProperties": true
               }
             }
           }

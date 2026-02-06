@@ -963,6 +963,66 @@ class Tickets(IncrementalStream):
             yield from records
 
 
+class TicketTypes(FullTableStream):
+    """
+    Retrieve ticket types
+
+    Docs: https://developers.intercom.com/docs/references/rest-api/api.intercom.io/ticket-types
+    """
+    tap_stream_id = 'ticket_types'
+    key_properties = ['id']
+    path = 'ticket_types'
+    data_key = 'data'
+
+    def get_records(self, bookmark_datetime=None, is_parent=False) -> Iterator[list]:
+        paging = True
+        next_page = None
+        LOGGER.info("Syncing: {}".format(self.tap_stream_id))
+
+        while paging:
+            response = self.client.get(self.path, url=next_page, params=self.params)
+
+            LOGGER.info("Synced: {}, records: {}".format(self.tap_stream_id, len(response.get(self.data_key, []))))
+            if 'pages' in response and response.get('pages', {}).get('next'):
+                next_page = response.get('pages', {}).get('next')
+                self.path = None
+                LOGGER.info("Syncing next page")
+            else:
+                paging = False
+
+            yield from response.get(self.data_key, [])
+
+
+class TicketStates(FullTableStream):
+    """
+    Retrieve ticket states
+
+    Docs: https://developers.intercom.com/docs/references/rest-api/api.intercom.io/ticket-states
+    """
+    tap_stream_id = 'ticket_states'
+    key_properties = ['id']
+    path = 'ticket_states'
+    data_key = 'data'
+
+    def get_records(self, bookmark_datetime=None, is_parent=False) -> Iterator[list]:
+        paging = True
+        next_page = None
+        LOGGER.info("Syncing: {}".format(self.tap_stream_id))
+
+        while paging:
+            response = self.client.get(self.path, url=next_page, params=self.params)
+
+            LOGGER.info("Synced: {}, records: {}".format(self.tap_stream_id, len(response.get(self.data_key, []))))
+            if 'pages' in response and response.get('pages', {}).get('next'):
+                next_page = response.get('pages', {}).get('next')
+                self.path = None
+                LOGGER.info("Syncing next page")
+            else:
+                paging = False
+
+            yield from response.get(self.data_key, [])
+
+
 STREAMS = {
     "admin_list": AdminList,
     "admins": Admins,
@@ -976,5 +1036,7 @@ STREAMS = {
     "segments": Segments,
     "tags": Tags,
     "teams": Teams,
-    "tickets": Tickets
+    "tickets": Tickets,
+    "ticket_types": TicketTypes,
+    "ticket_states": TicketStates
 }
