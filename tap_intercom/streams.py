@@ -152,6 +152,11 @@ class IncrementalStream(BaseStream):
     def skip_records(self, record):
         return False
 
+    def get_start_bookmark(self, state, config):
+        return singer.get_bookmark(
+            state, self.tap_stream_id, self.replication_key, config['start_date']
+        )
+
     def write_bookmark(self, state, bookmark_value):
         return singer.write_bookmark(state,
                                      self.tap_stream_id,
@@ -201,9 +206,7 @@ class IncrementalStream(BaseStream):
             raw_state_bookmark,
         )
 
-        parent_bookmark = singer.get_bookmark(
-            state, self.tap_stream_id, self.replication_key, config['start_date']
-        )
+        parent_bookmark = self.get_start_bookmark(state, config)
         LOGGER.info(
             "Stream: %s, config start_date=%s, parent_bookmark used=%s",
             self.tap_stream_id,
@@ -570,6 +573,15 @@ class Conversations(IncrementalStream):
     per_page = MAX_PAGE_SIZE
     child = 'conversation_parts'
 
+    def get_start_bookmark(self, state, config):
+        in_progress_bookmark = singer.get_bookmark(
+            state, self.tap_stream_id, "last_sync_started_at"
+        )
+        default_bookmark = in_progress_bookmark or config['start_date']
+        return singer.get_bookmark(
+            state, self.tap_stream_id, self.replication_key, default_bookmark
+        )
+
     def set_last_processed(self, state):
         self.last_processed = singer.get_bookmark(
             state, self.tap_stream_id, "last_processed")
@@ -611,6 +623,10 @@ class Conversations(IncrementalStream):
         state = singer.write_bookmark(state,
                                       self.tap_stream_id,
                                       "last_sync_started_at",
+                                      self.last_sync_started_at)
+        state = singer.write_bookmark(state,
+                                      self.tap_stream_id,
+                                      self.replication_key,
                                       self.last_sync_started_at)
         singer.write_state(state)
 
